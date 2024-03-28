@@ -1,5 +1,5 @@
-import ownmodules as own 
-import HS_modules as  HS
+import Fossat_utils as FU
+import qcan_utils as  QC
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ def get_E_fit(Proba,meso_hel,target):
 def print_fig(hel_meso,pH_raw,fraction_hel_used,Fs,title):
     plt.close()
     pH=np.arange(0,14,0.1,dtype=np.float)
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(Fs,Fs,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(Fs,Fs,pH,T,ign_norm_err=True,unsafe=0)
     Proba=np.array(Proba)
     hel_pH=np.zeros((len(pH)))
     for p in range(len(pH)):
@@ -36,7 +36,7 @@ def print_fig(hel_meso,pH_raw,fraction_hel_used,Fs,title):
 def get_target_per_meso(target,pH,Fs,T): 
     Fs_err=Fs*0.
     T_acc=0.5        
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(Fs,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(Fs,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
     Proba=np.array(Proba)
     # Okay so now randomly select a state
     #randomly change helicity
@@ -107,19 +107,19 @@ def get_target_per_meso(target,pH,Fs,T):
             print("Curr fit : ",E_fit)
             print("Best_fit : ",E_fit_best)
             print_fig(hel_meso_best,pH,target,Fs,"Current")
-            #Weights_norm,Weights_norm_err,Proba_full,Proba_err=HS.get_probas(Fs,Fs_err,pH_fine,T,ign_norm_err=True,unsafe=0)
+            #Weights_norm,Weights_norm_err,Proba_full,Proba_err=QC.get_probas(Fs,Fs_err,pH_fine,T,ign_norm_err=True,unsafe=0)
             #print_fig(Proba_full,hel_meso,pH)
         if count>max_steps and restart<N_restart: 
             print("Restarting ("+str(restart)+" out of "+str(N_restart)+")") 
             count=0
             loc='Fits_details/Round_'+str(restart)
-            own.check_and_create_rep(loc)
+            FU.check_and_create_rep(loc)
             print_fig(hel_meso_best,pH,target,Fs,loc+"/Best_fit_"+str(restart))
 
             W='' 
             for s in range(len(hel_meso_best)):
                 W+=str(q[s])+'\t'+str(hel_meso_best[s])+'\n'
-            own.write_file(loc+'/Hel_per_meso.txt',W) 
+            FU.write_file(loc+'/Hel_per_meso.txt',W) 
             hel_meso_best_save+=[hel_meso_best]
             hel_meso_best=np.array([random.random() for i in range(len(Proba))]) 
             hel_meso=hel_meso_best.copy()
@@ -176,7 +176,7 @@ def plot_hist_mix(vals,title):
     for i in range(len(hel_meso_mean)):
         W+=str(q[i])+'\t'+str(hel_meso_mean[i])+'\n'
 
-    own.write_file(title+'_std_per_meso.txt',W)
+    FU.write_file(title+'_std_per_meso.txt',W)
 
 if __name__=="__main__":    
     parser = argparse.ArgumentParser()
@@ -222,15 +222,15 @@ if __name__=="__main__":
     use_raw=False #True#False
     linearize=False
 
-    data=own.read_file('folders.txt')
+    data=FU.read_file('folders.txt')
     loc_org=data[0][1]+'/'
     loc_hel=data[1][1]+'/'
     loc_dis=data[2][1]+'/'
-    seq_3=HS.convert_residues_to_titrable(loc_org+'seq.in')
-    seq_1=HS.convert_AA_3_to_1_letter(seq_3)
+    seq_3=QC.convert_residues_to_titrable(loc_org+'seq.in')
+    seq_1=QC.convert_AA_3_to_1_letter(seq_3)
 
-    CD_data=np.array(np.array(own.read_file('CD_vs_pH.txt')),dtype=float) 
-    CD_data_raw=np.array(np.array(own.read_file('CD_vs_pH_raw.txt'))[1:],dtype=float)
+    CD_data=np.array(np.array(FU.read_file('CD_vs_pH.txt')),dtype=float) 
+    CD_data_raw=np.array(np.array(FU.read_file('CD_vs_pH_raw.txt'))[1:],dtype=float)
     
     end_point_add=True
     if end_point_add==True :
@@ -242,14 +242,14 @@ if __name__=="__main__":
     else :
         CD_data_used=CD_data
     
-    temp=own.read_file('./Charge_layers.txt')
+    temp=FU.read_file('./Charge_layers.txt')
     q=np.array(np.array(temp)[:,0],dtype=int)
     q_sz=np.array(np.array(temp)[:,1],dtype=int)
     
-    T=HS.read_param()[0] 
+    T=QC.read_param()[0] 
     top_frac=0.1
     pH=np.linspace(0,14,140) 
-    data=own.read_file('pKas_in.txt')
+    data=FU.read_file('pKas_in.txt')
     pKas=[float(data[l][0]) for l in range(len(data))]
     DF=np.zeros((len(data)))    
     for u in range(len(pKas)):
@@ -281,13 +281,13 @@ if __name__=="__main__":
     plt.savefig('./Fits_details/Fractional.png')
     plt.clf()
 
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
-    HS.plot_probas(Proba,Proba_err,Mapping,pH)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    QC.plot_probas(Proba,Proba_err,Mapping,pH)
 
     plt.clf()
     trans_pH=-(F_new[1:]-F_new[:-1])/(R*T*np.log(10.))
 
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
     
     if use_raw :
         fraction_hel_used=fraction_hel_raw
@@ -295,9 +295,9 @@ if __name__=="__main__":
         fraction_hel_used=fraction_hel
 
     pH=np.arange(0,14,0.1,dtype=np.float) 
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
 
-    peak_pos=HS.get_proba_peak_pos(Proba)
+    peak_pos=QC.get_proba_peak_pos(Proba)
     peak_pos=[len(pH)-1]+peak_pos
 
     Proba=np.array(Proba) 
@@ -331,7 +331,7 @@ if __name__=="__main__":
         hel_meso_all=[]
         for i in range(num_restart):
             loc= 'Fits_details/Round_'+str(i)    
-            temp=own.read_file(loc+'/Hel_per_meso.txt')     
+            temp=FU.read_file(loc+'/Hel_per_meso.txt')     
             hel_meso_all+=[[float(temp[i][1]) for i in range(len(temp))]]
  
     plt.close()
@@ -378,7 +378,7 @@ if __name__=="__main__":
     plt.xlim(0,14)
     plt.savefig('./Fits_details/Fractional_helicity.pdf')
  
-    Weights_norm,Weights_norm_err,Proba_new,Proba_new_err=HS.get_probas(F_new,F_new,pH_new,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba_new,Proba_new_err=QC.get_probas(F_new,F_new,pH_new,T,ign_norm_err=True,unsafe=0)
     ind_best=0
     Proba_new=np.array(Proba_new)
 
@@ -435,5 +435,5 @@ if __name__=="__main__":
     W=''
     for i in range(len(hel_meso_all[ind_best])):
         W+=str(q[i])+'\t'+str(hel_meso_all[ind_best][i])+'\n'
-    own.write_file('./Fits_details/best_meso_hel.txt',W)
+    FU.write_file('./Fits_details/best_meso_hel.txt',W)
     
