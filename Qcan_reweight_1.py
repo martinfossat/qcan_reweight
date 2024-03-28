@@ -1,5 +1,5 @@
-import ownmodules as own 
-import HS_modules as  HS
+import Fossat_utils as FU
+import qcan_utils as  QC
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,8 +7,6 @@ from matplotlib import cm
 from scipy.interpolate import interp1d
 import scipy.optimize 
 from scipy.signal import savgol_filter
-import random
-
 import math
 
 plt.style.use('../Plot_style/style.txt')
