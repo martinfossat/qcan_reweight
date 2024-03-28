@@ -1,5 +1,5 @@
-import ownmodules as own 
-import HS_modules as  HS
+import Fossat_utils as FU
+import qcan_utils as  QC
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -65,22 +65,22 @@ def plot_hist_mix(vals,title):
     plt.savefig('./'+title+'.pdf')
     plt.close()
 def auto_get_mixed_quantity(mix,folders,name):
-    val_dis=HS.read_HSQ_format(folders[0]+'Results/'+name,False)
-    val_org=HS.read_HSQ_format(folders[1]+'Results/'+name,False)
-    val_hel=HS.read_HSQ_format(folders[2]+'Results/'+name,False)
+    val_dis=QC.read_HSQ_format(folders[0]+'Results/'+name,False)
+    val_org=QC.read_HSQ_format(folders[1]+'Results/'+name,False)
+    val_hel=QC.read_HSQ_format(folders[2]+'Results/'+name,False)
     
     val_out=get_mixed_quantity(val_dis,val_org,val_hel,mix,q_offset,layers_q)
-    HS.write_HSQ_format(val_out,'Results/'+name,False)
+    QC.write_HSQ_format(val_out,'Results/'+name,False)
 
 def auto_get_mixed_quantity_per_res(mix,folders,name,layers_q):
 
-    val_dis=HS.read_HSQ_format(folders[0]+'Results/'+name,True)    
-    val_org=HS.read_HSQ_format(folders[1]+'Results/'+name,True)
-    val_hel=HS.read_HSQ_format(folders[2]+'Results/'+name,True)
+    val_dis=QC.read_HSQ_format(folders[0]+'Results/'+name,True)    
+    val_org=QC.read_HSQ_format(folders[1]+'Results/'+name,True)
+    val_hel=QC.read_HSQ_format(folders[2]+'Results/'+name,True)
     
     val_out=get_mixed_quantity_per_res(val_dis,val_org,val_hel,mix,q_offset,layers_q)
 
-    HS.write_HSQ_format(val_out,'Results/'+name,True)
+    QC.write_HSQ_format(val_out,'Results/'+name,True)
 
 def get_meso_DF(F_meso):                                                                 
     DF=[]
@@ -114,27 +114,27 @@ if __name__=="__main__":
     use_raw=False
     linearize=False
 
-    data=own.read_file('folders.txt')
+    data=FU.read_file('folders.txt')
     loc_org=data[0][1]+'/'
     loc_hel=data[1][1]+'/'
     loc_dis=data[2][1]+'/'
-    seq_3=HS.convert_residues_to_titrable(loc_org+'seq.in')
-    seq_1=HS.convert_AA_3_to_1_letter(seq_3)
+    seq_3=QC.convert_residues_to_titrable(loc_org+'seq.in')
+    seq_1=QC.convert_AA_3_to_1_letter(seq_3)
     
-    target_hel_meso=own.read_file('./Fits_details/best_meso_hel.txt')
+    target_hel_meso=FU.read_file('./Fits_details/best_meso_hel.txt')
 
-    CD_data=np.array(np.array(own.read_file('CD_vs_pH.txt')),dtype=float)        
-    CD_data_raw=np.array(np.array(own.read_file('CD_vs_pH_raw.txt'))[1:],dtype=float)
+    CD_data=np.array(np.array(FU.read_file('CD_vs_pH.txt')),dtype=float)        
+    CD_data_raw=np.array(np.array(FU.read_file('CD_vs_pH_raw.txt'))[1:],dtype=float)
 
     if use_raw:
         CD_data_used=CD_data_raw
     else :
         CD_data_used=CD_data
 
-    temp=own.read_file(loc_org+'Charge_layers.txt')
+    temp=FU.read_file(loc_org+'Charge_layers.txt')
     q_org=np.array(np.array(temp)[:,0],dtype=int)
     shutil.copyfile(loc_org+'Charge_layers.txt','./Charge_layers.txt')
-    temp=own.read_file('./Charge_layers.txt') 
+    temp=FU.read_file('./Charge_layers.txt') 
     q=np.array(np.array(temp)[:,0],dtype=int)
     if len(target_hel_meso)!= len(q):
         print(len(target_hel_meso),len(q))
@@ -146,10 +146,10 @@ if __name__=="__main__":
 
     q_offset=q_org[0]-q[0]
  
-    T=HS.read_param()[0] 
+    T=QC.read_param()[0] 
    
     pH=np.linspace(1,14,140) 
-    data=own.read_file('pKas_in.txt')
+    data=FU.read_file('pKas_in.txt')
     pKas=[float(data[l][0]) for l in range(len(data))]
     DF=np.zeros((len(data)))
     for u in range(len(pKas)):
@@ -165,7 +165,7 @@ if __name__=="__main__":
     for i in range(len(q)):
         W+=str(F_new[i][0])+'\t'+str(0.)+'\n'
 
-    own.write_file('./Results/Fs/Global_F_per_level.txt',W)
+    FU.write_file('./Results/Fs/Global_F_per_level.txt',W)
     
     Fs_err=F_new*0.
 
@@ -179,32 +179,32 @@ if __name__=="__main__":
 
     n=len(F_new)+4
 
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
 
 
     plt.clf()
     trans_pH=-(F_new[1:]-F_new[:-1])/(R*T*np.log(10.))
     #Not sure what those are for
-    Fs_org=HS.read_HSQ_format(loc_org+'Results/Fs/Normal/F_per_state.txt',False)
-    Fs_hel=HS.read_HSQ_format(loc_hel+'Results/Fs/Normal/F_per_state.txt',False)
-    Fs_dis=HS.read_HSQ_format(loc_dis+'Results/Fs/Normal/F_per_state.txt',False)    
+    Fs_org=QC.read_HSQ_format(loc_org+'Results/Fs/Normal/F_per_state.txt',False)
+    Fs_hel=QC.read_HSQ_format(loc_hel+'Results/Fs/Normal/F_per_state.txt',False)
+    Fs_dis=QC.read_HSQ_format(loc_dis+'Results/Fs/Normal/F_per_state.txt',False)    
     # So here we will adapt the innner probabilities of each mesosattes such that the differene is maintained within, and that the overall F is the one specified
     for i in range(len(Fs_org)):
-        Fs_org[i]=HS.adapt_microstates_weight(Fs_org[i],Fake_F[i],T)
-        Fs_hel[i]=HS.adapt_microstates_weight(Fs_hel[i],Fake_F[i],T)
-        Fs_dis[i]=HS.adapt_microstates_weight(Fs_dis[i],Fake_F[i],T)
+        Fs_org[i]=QC.adapt_microstates_weight(Fs_org[i],Fake_F[i],T)
+        Fs_hel[i]=QC.adapt_microstates_weight(Fs_hel[i],Fake_F[i],T)
+        Fs_dis[i]=QC.adapt_microstates_weight(Fs_dis[i],Fake_F[i],T)
     
-    AH_org=HS.read_HSQ_format(loc_org+'Results/Plots/Values_to_plot/Alpha_helix.txt',True)
-    AH_hel=HS.read_HSQ_format(loc_hel+'Results/Plots/Values_to_plot/Alpha_helix.txt',True)
-    AH_dis=HS.read_HSQ_format(loc_dis+'Results/Plots/Values_to_plot/Alpha_helix.txt',True) 
+    AH_org=QC.read_HSQ_format(loc_org+'Results/Plots/Values_to_plot/Alpha_helix.txt',True)
+    AH_hel=QC.read_HSQ_format(loc_hel+'Results/Plots/Values_to_plot/Alpha_helix.txt',True)
+    AH_dis=QC.read_HSQ_format(loc_dis+'Results/Plots/Values_to_plot/Alpha_helix.txt',True) 
 
     plt.close()
 
-    counts_org=HS.read_HSQ_format(loc_org+'Results/States_details/Population_counts.txt',False)
-    counts_hel=HS.read_HSQ_format(loc_hel+'Results/States_details/Population_counts.txt',False)
-    counts_dis=HS.read_HSQ_format(loc_dis+'Results/States_details/Population_counts.txt',False)
+    counts_org=QC.read_HSQ_format(loc_org+'Results/States_details/Population_counts.txt',False)
+    counts_hel=QC.read_HSQ_format(loc_hel+'Results/States_details/Population_counts.txt',False)
+    counts_dis=QC.read_HSQ_format(loc_dis+'Results/States_details/Population_counts.txt',False)
  
-    own.check_and_create_rep('./Results/States_details')
+    FU.check_and_create_rep('./Results/States_details')
     #shutil.copyfile(loc_org+'/Results/States_details/States_mapping.txt','./Results/States_details/States_mapping.txt') 
     #shutil.copyfile(loc_org+'/Results/States_details/States.txt','./Results/States_details/States.txt')
 
@@ -242,7 +242,7 @@ if __name__=="__main__":
 
     plot_hist_mix(mix,'mix_per_meso')
     pH=np.arange(0,14,0.1,dtype=np.float) 
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
     
     DFs_org=get_meso_DF(Fs_org)
     DFs_dis=get_meso_DF(Fs_dis)
@@ -257,7 +257,7 @@ if __name__=="__main__":
 
         Fs_rew_rev+=[[Fake_F[i+q_offset]+mixed_DF[i][j]-full for j in range(len(mixed_DF[i]))]]
 
-    HS.write_HSQ_format(Fs_rew_rev,'./Results/Fs/Invert/F_per_state.txt',False)     
+    QC.write_HSQ_format(Fs_rew_rev,'./Results/Fs/Invert/F_per_state.txt',False)     
 
     sub=np.amax(Fs_rew_rev)
     Fs_rew_nor=[]
@@ -266,17 +266,17 @@ if __name__=="__main__":
         Fs_rew_nor+=[[Fs_rew_rev[i][j]-sub for j in range(len(Fs_rew_rev[i]))]]
         Fs_rew_err+=[[0. for j in range(len(Fs_rew_rev[i]))]]
  
-    HS.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Invert/F_per_state_err.txt',False)
-    HS.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Normal/F_per_state.txt',False)
-    HS.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Normal/F_per_state_err.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/S_per_state.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/S_per_state_err.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/U_per_state.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/U_per_state_err.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/S_per_state.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/S_per_state_err.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/U_per_state.txt',False)
-    HS.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/U_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Invert/F_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Normal/F_per_state.txt',False)
+    QC.write_HSQ_format(Fs_rew_nor,'./Results/Fs/Normal/F_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/S_per_state.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/S_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/U_per_state.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Normal/U_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/S_per_state.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/S_per_state_err.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/U_per_state.txt',False)
+    QC.write_HSQ_format(Fs_rew_err,'./Results/Fs/Invert/U_per_state_err.txt',False)
     
     AH_out=get_mixed_quantity_per_res(AH_dis,AH_org,AH_hel,mix,q_offset,layers_q)
     plt.ylim(0,1.) 
@@ -333,8 +333,8 @@ if __name__=="__main__":
             pops+=[[float('nan')]]
             continue 
         Fs_rew_nor[i]=Fs_rew_rev[i] 
-        pops+=[HS.get_microstates_population_mesostates(Fs_rew_nor[i],Fs_rew_rev[i],T)[0]]
-    HS.plot_probas(Proba,Proba_err,pops,pH)
-    HS.write_HSQ_format(pops,'./Results/States_details/Population_counts.txt', False)
-    HS.write_HSQ_format(pops,'./Results/States_details/Population_counts_err.txt', False)
+        pops+=[QC.get_microstates_population_mesostates(Fs_rew_nor[i],Fs_rew_rev[i],T)[0]]
+    QC.plot_probas(Proba,Proba_err,pops,pH)
+    QC.write_HSQ_format(pops,'./Results/States_details/Population_counts.txt', False)
+    QC.write_HSQ_format(pops,'./Results/States_details/Population_counts_err.txt', False)
     

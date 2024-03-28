@@ -91,11 +91,11 @@ def plot_CDF(Proba,Proba_err,Mapping,pH,title=''):
 def wrap_plot(F_fit_man,title,pKas_plot=[]):
     F_new=np.array([[F_fit_man[i]] for i in range(len(F_fit_man))])
     Fs_err=F_new*0.
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH,T,ign_norm_err=True,unsafe=0)
     Mapping=[[i] for i in range(len(F_new))]
     plot_probas_spec(Proba,Proba_err,Mapping,pH,pKas=pKas_plot,title=title)
     pH_extended=np.linspace(-3,17,200)
-    Weights_norm,Weights_norm_err,Proba,Proba_err=HS.get_probas(F_new,Fs_err,pH_extended,T,ign_norm_err=True,unsafe=0)
+    Weights_norm,Weights_norm_err,Proba,Proba_err=QC.get_probas(F_new,Fs_err,pH_extended,T,ign_norm_err=True,unsafe=0)
     plot_CDF(Proba,Proba_err,Mapping,pH_extended,title=title)        
 
 def plot_probas_spec(Proba,Proba_err,Mapping,pH,title='Proba',subrep='./',pKas=[],separate=0,print_micro=1,do_layer=1,Q_min_max=[]):
@@ -190,8 +190,8 @@ def plot_probas_spec(Proba,Proba_err,Mapping,pH,title='Proba',subrep='./',pKas=[
 #        plt.axis('off')
 #        plt.xlim(-0.01,0.1)
         
-        own.check_and_create_rep('Results/Plots/Detailed')
-        own.check_and_create_rep('Results/Plots/Detailed/'+subrep)
+        FU.check_and_create_rep('Results/Plots/Detailed')
+        FU.check_and_create_rep('Results/Plots/Detailed/'+subrep)
         plt.savefig('Results/Plots/Detailed/'+subrep+'/States_'+title+'.pdf')
         plt.clf()
 
@@ -247,7 +247,7 @@ if __name__=="__main__":
     window_size=101
     poly_order=2
 
-    T=HS.read_param()[0]
+    T=QC.read_param()[0]
     power_diff=1
     restart_prec_frac=0.25# This is the tolerance compared to the  best fit so far
     T_acc=0.003
@@ -264,34 +264,34 @@ if __name__=="__main__":
 
     fit_params=[T,power_diff,restart_prec_frac,T_acc,rand_mag,target_prec,v_freq,num_steps,max_unchanged,temp_check_freq,temp_factor,target_acc,gradual,N_restarts,rand_only]
 
-    data=own.read_file('folders.txt')
+    data=FU.read_file('folders.txt')
     loc_org=data[0][1]+'/'
     loc_hel=data[1][1]+'/'
     loc_dis=data[2][1]+'/'
-    seq_3=HS.convert_residues_to_titrable(loc_org+'seq.in')
-    seq_1=HS.convert_AA_3_to_1_letter(seq_3)
+    seq_3=QC.convert_residues_to_titrable(loc_org+'seq.in')
+    seq_1=QC.convert_AA_3_to_1_letter(seq_3)
     list_res=[i-1 for i in range(len(seq_3))]
-    pos_res,neg_res,base_charge,arg_res,raw_seq,seq_data_q,seq_data_id,seq_id_reduced,map,new_W=HS.HSQ_internal_sequence_create(seq_3,list_res)
+    pos_res,neg_res,base_charge,arg_res,raw_seq,seq_data_q,seq_data_id,seq_id_reduced,map,new_W=QC.HSQ_internal_sequence_create(seq_3,list_res)
    
-    target_Q=np.array(own.read_file('q_vs_pH.txt'),dtype=np.float)
+    target_Q=np.array(FU.read_file('q_vs_pH.txt'),dtype=np.float)
 
-#    CD_data=np.array(np.array(own.read_file('CD_vs_pH.txt'))[1:],dtype=float)
+#    CD_data=np.array(np.array(FU.read_file('CD_vs_pH.txt'))[1:],dtype=float)
 #    plt.scatter(CD_data[:,0],CD_data[:,1]/CD_data[:,2])
 #    plt.savefig('test_SSP.png')
 #    plt.clf()
     
     #Not sure wht those are for 
 #    try :
-#        Fs_org=HS.read_HSQ_format(loc_org+'Results/Fs/Normal/F_per_state.txt',False)
+#        Fs_org=QC.read_HSQ_format(loc_org+'Results/Fs/Normal/F_per_state.txt',False)
 #    except : 
 #        print "0"
-#    Fs_hel=HS.read_HSQ_format(loc_hel+'Results/Fs/Normal/F_per_state.txt',False)
-#    Fs_dis=HS.read_HSQ_format(loc_dis+'Results/Fs/Normal/F_per_state.txt',False)
+#    Fs_hel=QC.read_HSQ_format(loc_hel+'Results/Fs/Normal/F_per_state.txt',False)
+#    Fs_dis=QC.read_HSQ_format(loc_dis+'Results/Fs/Normal/F_per_state.txt',False)
 #
-    F_per_lvl_pred=own.read_file(loc_org+'Results/Fs/Global_F_prediction.txt')
+    F_per_lvl_pred=FU.read_file(loc_org+'Results/Fs/Global_F_prediction.txt')
     Fs_pred=np.array(F_per_lvl_pred,dtype=float)[:,1]
 
-    #layers_q=own.read_file(loc_org+'/Charge_layers.txt')
+    #layers_q=FU.read_file(loc_org+'/Charge_layers.txt')
     
 #    q=np.array(layers_q,dtype=int)[:,0]
 
@@ -354,7 +354,7 @@ if __name__=="__main__":
     for l in range(len(Fake_F)):
         W+=str(Fake_F[l])+'\n'
 
-    own.write_file('./Results/Fs/Global_F_per_level.txt',W)    
+    FU.write_file('./Results/Fs/Global_F_per_level.txt',W)    
     Fs=all_DFs
 
     ind_min=0
@@ -375,7 +375,7 @@ if __name__=="__main__":
         elif target_Q[k,0]>pH_max and target_Q[k-1,0]<=pH_max :
             ind_max=k
 
-    q_out=HS.get_q_profile_from_F(pH,Fake_F,q,T)
+    q_out=QC.get_q_profile_from_F(pH,Fake_F,q,T)
 
     ind_min_pH=0
     ind_max_pH=-1
@@ -414,7 +414,7 @@ if __name__=="__main__":
     plt.savefig('test_prelin.pdf')	
     plt.clf()
 
-    d1_prefit=HS.get_first_derivative(pH,q_out)       
+    d1_prefit=QC.get_first_derivative(pH,q_out)       
 
     new_pH=np.linspace(raw_pH[0],raw_pH[-1],(raw_pH[-1]-raw_pH[0])*pH_res)
     ind_min_new_pH=0
@@ -432,7 +432,7 @@ if __name__=="__main__":
     N=0
     val=0.
     for p in range(len(raw_pH)):
-        ind=HS.find_index(new_pH,raw_pH[p])
+        ind=QC.find_index(new_pH,raw_pH[p])
         N+=1
         val+=(raw_data[p]-yy_sg[ind])**2
     
@@ -456,12 +456,12 @@ if __name__=="__main__":
     fig.set_size_inches(7.5,5)
     ax=fig.add_axes([0.1,0.1,0.8,0.8])
         
-    d1_data=HS.get_first_derivative(raw_pH,raw_data)
+    d1_data=QC.get_first_derivative(raw_pH,raw_data)
  
     plt.plot(raw_pH,d1_data,color='orange')
 
     # Now the pre derivative
-    d1_new_data=HS.get_first_derivative(new_pH,new_data)
+    d1_new_data=QC.get_first_derivative(new_pH,new_data)
     plt.plot(new_pH,d1_new_data,color='r')
     
     plt.vlines([pH_min,pH_max],q[0],0)
@@ -481,7 +481,7 @@ if __name__=="__main__":
             if (arr[i-1]<val and arr[i]>=val) or ((arr[i-1]>val and arr[i]<=val)) :
                 return i
     
-    q_out=HS.get_q_profile_from_F(new_pH,Fake_F,q,T)
+    q_out=QC.get_q_profile_from_F(new_pH,Fake_F,q,T)
 
     q_out_org=q_out.copy()
     sum_temp=0
@@ -498,20 +498,20 @@ if __name__=="__main__":
 #    F_pre_fit=Fake_F.copy()
     if plot_only==False:    
         if no_lin==True :
-            Fake_F_all=HS.fit_potentiometric_data_V1(F_pre_fit,raw_data,raw_pH,q,fit_params) 
+            Fake_F_all=QC.fit_potentiometric_data_V1(F_pre_fit,raw_data,raw_pH,q,fit_params) 
         else : 
-            Fake_F_all=HS.fit_potentiometric_data_V1(F_pre_fit,new_data,new_pH,q,fit_params)
+            Fake_F_all=QC.fit_potentiometric_data_V1(F_pre_fit,new_data,new_pH,q,fit_params)
         diff_fit_temp=float('+inf')                                                   
         save_ind=0
         for k in range(len(Fake_F_all)):
-            q_out=HS.get_q_profile_from_F(new_pH,Fake_F_all[k],q,T)
+            q_out=QC.get_q_profile_from_F(new_pH,Fake_F_all[k],q,T)
             diff_fit=sum((abs(q_out-new_data)**power_diff)/len(pH))
             if diff_fit<diff_fit_temp:
                 save_ind=k
                 diff_fit_temp=diff_fit 
         Fake_F=Fake_F_all[save_ind]
     else : 
-        data=own.read_file('pKas_in.txt')
+        data=FU.read_file('pKas_in.txt')
         pKas=[float(data[l][0]) for l in range(len(data))]
         Fake_F=np.zeros((len(pKas)+1))
         DF=np.zeros((len(pKas)))
@@ -520,18 +520,18 @@ if __name__=="__main__":
         for u in range(len(DF)):
             Fake_F[u]=np.sum(DF[u:])        
     
-    q_out_pred=HS.get_q_profile_from_F(pH,Fs_pred,q,T)
+    q_out_pred=QC.get_q_profile_from_F(pH,Fs_pred,q,T)
     
     
     
     if use_man_fit:
-        data=own.read_file('pKas_man.txt')
+        data=FU.read_file('pKas_man.txt')
         F_fit_man=np.zeros((len(DF)+1))
         for i in range(len(DF)):
             F_fit_man[i]=np.sum(DF[i:])
-        q_out_fit=HS.get_q_profile_from_F(pH,F_fit_man,q,T)
+        q_out_fit=QC.get_q_profile_from_F(pH,F_fit_man,q,T)
     else : 
-        q_out_fit=HS.get_q_profile_from_F(pH,Fake_F,q,T)
+        q_out_fit=QC.get_q_profile_from_F(pH,Fake_F,q,T)
 
     Fake_F_simple=[0]
     for k in range(len(Fake_F)/2):
@@ -562,12 +562,12 @@ if __name__=="__main__":
     N=N+N+[1]
     
     plot_legend(q,N)
-    q_out_simple=HS.get_q_profile_from_F(pH,Fake_F_simple,q,T)
+    q_out_simple=QC.get_q_profile_from_F(pH,Fake_F_simple,q,T)
     plt.close()     
 
     q_quen=[q[0],q[len(q)/2],q[-1]] 
     F_Fake_quen=[Fs_pred[0],Fs_pred[len(q)/2],Fs_pred[-1]]
-    q_out_quen=HS.get_q_profile_from_F(pH,F_Fake_quen,q_quen,T)
+    q_out_quen=QC.get_q_profile_from_F(pH,F_Fake_quen,q_quen,T)
 
 #    plt.vlines(pKas,q[-1],q[0],color='gray',linestyle='--')
     plt.hlines(0,0,14,color='gray',linestyle='--')
@@ -608,7 +608,7 @@ if __name__=="__main__":
 
     ax2=fig.add_axes([0.09,0.11,0.8,0.09])
     plt.hlines(0,0,14,color='grey',linestyle='--') 
-    q_out_raw=HS.get_q_profile_from_F(raw_pH,Fake_F,q,T)
+    q_out_raw=QC.get_q_profile_from_F(raw_pH,Fake_F,q,T)
     
     plt.xlim(0,14)  
     plt.plot(raw_pH,raw_data-q_out_raw,color='k')
@@ -621,10 +621,10 @@ if __name__=="__main__":
     plt.close()
 
     plt.hlines(0,0,14,color='gray',linestyle='--')
-    d1_expt=HS.get_first_derivative(new_pH,new_data)
+    d1_expt=QC.get_first_derivative(new_pH,new_data)
     plt.plot(new_pH,d1_expt,color='orange')
        
-    d1_quen=HS.get_first_derivative(pH,q_out_quen)
+    d1_quen=QC.get_first_derivative(pH,q_out_quen)
     plt.plot(pH,d1_quen,color='k')
     plt.savefig('derivative_Q_quenched.pdf')
     
@@ -636,21 +636,21 @@ if __name__=="__main__":
 
     plt.ylabel(r'$\frac{dq}{dpH}$')    
     plt.hlines(0,0,14,color='grey',linestyle='--') 
-    d1_unsh=HS.get_first_derivative(pH,q_out_pred)         
+    d1_unsh=QC.get_first_derivative(pH,q_out_pred)         
     plt.plot(pH[ind_min_pH:ind_max_pH],d1_unsh[ind_min_pH:ind_max_pH],color='r',label='Unshifted pK'+r'$\mathbf{_a}$'+' values')
     plt.plot(pH[:ind_min_pH],d1_unsh[:ind_min_pH],color='r',linestyle='--')
     plt.plot(pH[ind_max_pH:],d1_unsh[ind_max_pH:],color='r',linestyle='--')
 
-    d1_expt=HS.get_first_derivative(new_pH,new_data)
+    d1_expt=QC.get_first_derivative(new_pH,new_data)
     plt.plot(new_pH,d1_expt,color='orange',linewidth=3,label='Smoothed experimental data')
 
     #plt.plot(new_pH[:ind_min_new_pH],d1_expt[:ind_min_new_pH],color='orange',linestyle='--')
     #plt.plot(new_pH[ind_max_new_pH:],d1_expt[ind_max_new_pH:],color='orange',linestyle='--') 
-    #d1_simple=HS.get_first_derivative(pH,q_out_simple)         
+    #d1_simple=QC.get_first_derivative(pH,q_out_simple)         
     #plt.plot(new_pH,d1_simple,color='g')
     #plt.savefig('derivative_Q_unshifted.pdf')
     plt.xlim(0,14) 
-    d1_fit=HS.get_first_derivative(pH,q_out_fit) 
+    d1_fit=QC.get_first_derivative(pH,q_out_fit) 
     plt.plot(pH[ind_min_pH:ind_max_pH],d1_fit[ind_min_pH:ind_max_pH],color='b',label="Fit using equation (9)")
     plt.plot(pH[:ind_min_pH],d1_fit[:ind_min_pH],color='b',linestyle='--')
     plt.plot(pH[ind_max_pH:],d1_fit[ind_max_pH:],color='b',linestyle='--') 
@@ -665,8 +665,8 @@ if __name__=="__main__":
     ax2.yaxis.set_label_position("right")
     plt.xlim(0,14)  
     plt.xlabel('pH') 
-    q_out_fit_res=HS.get_q_profile_from_F(new_pH,Fake_F,q,T)
-    d1_fit_res=HS.get_first_derivative(new_pH,q_out_fit_res) 
+    q_out_fit_res=QC.get_q_profile_from_F(new_pH,Fake_F,q,T)
+    d1_fit_res=QC.get_first_derivative(new_pH,q_out_fit_res) 
     
     plt.plot(new_pH,d1_fit_res-d1_expt,color='k')
     
@@ -681,10 +681,10 @@ if __name__=="__main__":
         W=''
         for k in range(len(pKa)):
             W+=str(pKa[k])+'\n'
-        own.write_file('pKas_out.txt',W)
+        FU.write_file('pKas_out.txt',W)
        
     #Here is get the hill coefficient fromthe proba
-    W,W_err,Proba,Proba_err=HS.get_probas(Fake_F,Fake_F,pH,T,ign_norm_err=True,unsafe=0)
+    W,W_err,Proba,Proba_err=QC.get_probas(Fake_F,Fake_F,pH,T,ign_norm_err=True,unsafe=0)
     basic=[i for i in range(len(Fake_F))]
     plt.close()
     N_a=np.zeros((len(pH)))
@@ -698,7 +698,7 @@ if __name__=="__main__":
     Kc=Hp[:]*N_b[:]/N_a[:]
     ln_Kc=np.log(Kc[:])
     ln_Hp=np.log(Hp[:])
-    dln_Kc=HS.get_first_derivative(ln_Hp,ln_Kc)
+    dln_Kc=QC.get_first_derivative(ln_Hp,ln_Kc)
     plt.close()
     h=dln_Kc-1.
     plt.plot(pH,h,color='g')
@@ -729,7 +729,7 @@ if __name__=="__main__":
     plt.savefig('q_vs_pH_simple.pdf')   
 
     for i in range(len(Fake_F_all)):
-        q_out_fit=HS.get_q_profile_from_F(pH,Fake_F_all[i],q,T)
+        q_out_fit=QC.get_q_profile_from_F(pH,Fake_F_all[i],q,T)
         plt.plot(pH[ind_min_pH:ind_max_pH],q_out_fit[ind_min_pH:ind_max_pH],color='b')
         plt.plot(pH[:ind_min_pH],q_out_fit[:ind_min_pH],color='b',linestyle='--')
         plt.plot(pH[ind_max_pH:],q_out_fit[ind_max_pH:],color='b',linestyle='--') 
@@ -739,11 +739,11 @@ if __name__=="__main__":
 
     plt.hlines(0,0,14,color='gray',linestyle='--')
     for i in range(len(Fake_F_all)):
-        q_out_fit=HS.get_q_profile_from_F(pH,Fake_F_all[i],q,T)
-        d1_fit=HS.get_first_derivative(pH,q_out_fit) 
+        q_out_fit=QC.get_q_profile_from_F(pH,Fake_F_all[i],q,T)
+        d1_fit=QC.get_first_derivative(pH,q_out_fit) 
         plt.plot(pH[ind_min_pH:ind_max_pH],d1_fit[ind_min_pH:ind_max_pH],color='b')
         plt.plot(pH[:ind_min_pH],d1_fit[:ind_min_pH],color='b',linestyle='--')
         plt.plot(pH[ind_max_pH:],d1_fit[ind_max_pH:],color='b',linestyle='--') 
-    d1_expt=HS.get_first_derivative(new_pH,new_data)
+    d1_expt=QC.get_first_derivative(new_pH,new_data)
     plt.plot(new_pH,d1_expt,color='orange')
     plt.savefig('derivative_Q_fit_all.pdf')
